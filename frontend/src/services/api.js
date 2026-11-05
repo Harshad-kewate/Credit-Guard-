@@ -1,16 +1,11 @@
 /**
- * Credit Guard - Enterprise FinTech API Service
- * 
- * Production integration layer for the trained Random Forest Flask backend.
- * Endpoints:
- * - GET  /api/health
- * - POST /api/analyze (multipart/form-data with original CSV file)
+ * Credit Guard - API Service
+ * Connects the frontend to the deployed Flask backend.
  */
 
-let apiBaseUrl = '/api';
+let apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export function setApiBaseUrl(url) {
-  // Normalize trailing slashes
   apiBaseUrl = url.replace(/\/+$/, '');
 }
 
@@ -18,17 +13,14 @@ export function getApiBaseUrl() {
   return apiBaseUrl;
 }
 
-/**
- * Probes the Flask backend to verify model status and availability.
- */
 export async function checkBackendHealth() {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     const response = await fetch(`${apiBaseUrl}/health`, {
       method: 'GET',
-      headers: { 'Accept': 'application/json' },
+      headers: { Accept: 'application/json' },
       signal: controller.signal
     });
 
@@ -36,15 +28,16 @@ export async function checkBackendHealth() {
 
     if (response.ok) {
       const data = await response.json();
-      return { 
-        connected: true, 
+      return {
+        connected: true,
         modelLoaded: Boolean(data.model_loaded),
-        details: data 
+        details: data
       };
     }
-    return { 
-      connected: false, 
-      error: 'Prediction service is not connected.' 
+
+    return {
+      connected: false,
+      error: 'Prediction service is not connected.'
     };
   } catch (err) {
     return {
@@ -54,15 +47,6 @@ export async function checkBackendHealth() {
   }
 }
 
-/**
- * Sends the original uploaded CSV file to POST /api/analyze using FormData.
- * 
- * Strict requirements:
- * - Sends original CSV file directly via multipart/form-data.
- * - Does not send manually generated objects.
- * - Never fabricates predictions.
- * - Handles validation errors (e.g. missing columns, nulls, non-numeric values).
- */
 export async function analyzeCsvFile(csvFile) {
   if (!csvFile) {
     return {
@@ -77,7 +61,6 @@ export async function analyzeCsvFile(csvFile) {
     formData.append('file', csvFile, csvFile.name || 'transactions.csv');
 
     const controller = new AbortController();
-    // Allow ample timeout for larger batch processing
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     const response = await fetch(`${apiBaseUrl}/analyze`, {
@@ -90,7 +73,7 @@ export async function analyzeCsvFile(csvFile) {
 
     const data = await response.json().catch(() => null);
 
-    if (response.ok && data && data.success) {
+    if (response.ok && data?.success) {
       return {
         success: true,
         connected: true,
@@ -99,7 +82,6 @@ export async function analyzeCsvFile(csvFile) {
       };
     }
 
-    // Backend returned validation error (400) or server error (500)
     return {
       success: false,
       connected: true,
@@ -107,17 +89,14 @@ export async function analyzeCsvFile(csvFile) {
       missingFeatures: data?.missing_features || null,
       details: data
     };
-
   } catch (err) {
-    // Network error or server not responding
     return {
       success: false,
       connected: false,
       error: 'Prediction service is not connected.',
-      details: 'Ensure the Flask backend server is running (python backend/app.py) on port 5000.'
+      details: err.message
     };
   }
 }
 
-// Retain alias for backwards compatibility
 export const runFraudAnalysis = analyzeCsvFile;
