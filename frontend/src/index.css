@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-main: #F5F7FA;
+    --bg-panel: #FFFFFF;
+    --navy-primary: #17243A;
+    --blue-electric: #4568F5;
+    --teal-accent: #13B8A6;
+    --text-primary: #17243A;
+    --text-secondary: #7B8798;
+    --border-color: #E5EAF0;
+    --fraud-alert: #EF5350;
+    --warning-alert: #F5A623;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.015em;
+  }
+
+  .font-mono-num {
+    font-family: 'Space Grotesk', -apple-system, monospace;
+    font-feature-settings: "tnum" 1, "zero" 1;
+  }
+
+  /* Thin subtle scrollbar for tables and panels */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F5F7FA;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #D0D8E2;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #7B8798;
+  }
+}
+
+/* Micro-interaction utility */
+.transition-default {
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
